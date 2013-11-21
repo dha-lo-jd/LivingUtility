@@ -16,13 +16,26 @@ import Schr0.LivingUtility.mods.entity.motion.LivingChestMotionMap;
 import com.google.common.collect.Sets;
 
 public class ModelLivingChest extends ModelBase {
+	public interface MotionFactory {
+		LivingChestMotion<ModelLivingChest> create(EntityLivingChest chast, LivingChestMotionData targetMotionData,
+				LivingChestMotionMap<ModelLivingChest> map);
+	}
+
+	public static boolean registMotionFactory(MotionFactory motionFactory) {
+		return motionFactorys.add(motionFactory);
+	}
+
 	public ModelRenderer Body;
 	public ModelRenderer Rleg;
 	public ModelRenderer Lleg;
 	public ModelRenderer Rarm;
 	public ModelRenderer Larm;
+
 	public ModelRenderer Core;
+
 	public ModelRenderer Cover;
+
+	private static final Set<MotionFactory> motionFactorys = Sets.newLinkedHashSet();
 
 	public ModelLivingChest() {
 		textureWidth = 64;
@@ -204,6 +217,11 @@ public class ModelLivingChest extends ModelBase {
 
 		LivingChestMotionMap<ModelLivingChest> map = new LivingChestMotionMap<ModelLivingChest>(this.getClass(),
 				motions);
+
+		for (MotionFactory factory : motionFactorys) {
+			LivingChestMotion<ModelLivingChest> motion = factory.create(chast, targetMotionData, map);
+			map.put(this.getClass(), motion);
+		}
 
 		targetMotionData.putMotionMap(this, map);
 		targetMotionData.setCurrentCoverMotion(none);

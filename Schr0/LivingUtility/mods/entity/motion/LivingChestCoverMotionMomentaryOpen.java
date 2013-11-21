@@ -22,6 +22,7 @@ public class LivingChestCoverMotionMomentaryOpen extends LivingChestCoverMotionO
 		if (motionData.getCoverState() == CoverState.OPENNING || chast.isOpen()) {
 			motionData.setCurrentCoverMotion(motionOpen);
 		} else {
+			motionData.startUpdateTicks();
 			int ticks = motionData.addTicks();
 
 			System.out.println(ticks);

@@ -21,6 +21,7 @@ public class LivingChestCoverMotionOpen extends LivingChestCoverMotionBase {
 			motionData.setCurrentCoverMotion(motionClose);
 		} else {
 			//アニメーション進行
+			super.updateMotion();
 			motionData.addTicks();
 		}
 	}

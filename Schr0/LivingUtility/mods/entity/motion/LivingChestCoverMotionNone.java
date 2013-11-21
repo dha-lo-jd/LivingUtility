@@ -40,7 +40,7 @@ public class LivingChestCoverMotionNone extends LivingChestCoverMotionBase {
 			chast.playSE("random.chestopen", 0.5F, chast.worldObj.rand.nextFloat() * 0.1F + 0.9F);
 			motionData.setCurrentCoverMotion(motionMomentaryOpen);
 		} else {
-			motionData.setPrevTicks(motionData.getTicks());
+			super.updateMotion();
 		}
 	}
 }

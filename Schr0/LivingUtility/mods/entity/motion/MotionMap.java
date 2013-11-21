@@ -14,9 +14,9 @@ import com.google.common.collect.Maps;
 public class MotionMap<E extends Entity, D extends MotionData<? super E>, M, MO extends Motion<E, D, M>> {
 	public class Key {
 		private final Class<? extends M> model;
-		private final Motion<E, D, ?> motion;
+		private final Class<? extends Motion<E, D, ?>> motion;
 
-		public Key(Class<? extends M> model, Motion<E, D, ?> motion) {
+		public Key(Class<? extends M> model, Class<? extends Motion<E, D, ?>> motion) {
 			super();
 			this.model = model;
 			this.motion = motion;
@@ -74,7 +74,7 @@ public class MotionMap<E extends Entity, D extends MotionData<? super E>, M, MO 
 
 	public MotionMap(Class<? extends M> model, Set<? extends MO> motions) {
 		for (MO mo : motions) {
-			map.put(new Key(model, mo), mo);
+			put(model, mo);
 		}
 	}
 
@@ -82,8 +82,18 @@ public class MotionMap<E extends Entity, D extends MotionData<? super E>, M, MO 
 		return map.containsKey(key);
 	}
 
+	public MO get(Class<? extends M> model, Class<? extends MO> motion) {
+		return get(new Key(model, motion));
+	}
+
 	public MO get(Key key) {
 		return map.get(key);
+	}
+
+	public MO put(Class<? extends M> model, MO motion) {
+		@SuppressWarnings("unchecked")
+		Class<? extends Motion<E, D, ?>> motionClass = (Class<? extends Motion<E, D, ?>>) motion.getClass();
+		return map.put(new Key(model, motionClass), motion);
 	}
 
 	public Collection<MO> values() {

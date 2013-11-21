@@ -20,4 +20,9 @@ public abstract class LivingChestCoverMotionBase implements LivingChestMotion<Mo
 				* 0.5F * (float) Math.PI;
 		model.Cover.rotateAngleX = -angle;
 	}
+
+	@Override
+	public void updateMotion() {
+		motionData.startUpdateTicks();
+	}
 }

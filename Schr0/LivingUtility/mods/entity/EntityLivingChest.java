@@ -64,10 +64,6 @@ public class EntityLivingChest extends EntityLivingUtility {
 			})//
 			.build();
 
-	//蓋の開閉角度の変数(独自)
-	private float prevLidAngle;
-	private float lidAngle;
-
 	//モーション制御用DTO
 	private final LivingChestMotionData motionData = new LivingChestMotionData();
 
@@ -120,12 +116,6 @@ public class EntityLivingChest extends EntityLivingUtility {
 		dataWatcher.addObject(30, "");
 	}
 
-	//蓋の角度（独自）
-	//@SideOnly(Side.CLIENT)
-	public float getCoverAngle(float par1) {
-		return (prevLidAngle + (lidAngle - prevLidAngle) * par1) * 0.5F * (float) Math.PI;
-	}
-
 	//死亡時の音声
 	@Override
 	protected String getDeathSound() {
@@ -136,11 +126,6 @@ public class EntityLivingChest extends EntityLivingUtility {
 	@Override
 	protected String getHurtSound() {
 		return "dig.wood";
-	}
-
-	//蓋の角度を取得
-	public float getLidAngle() {
-		return lidAngle;
 	}
 
 	//内部インベントリの大きさ（abstract独自）
@@ -305,8 +290,8 @@ public class EntityLivingChest extends EntityLivingUtility {
 
 		//アイテムの回収//
 		if (!worldObj.isRemote && !dead) {
-			List list = worldObj.getEntitiesWithinAABB(EntityItem.class, boundingBox.expand(0.5D, 0.0D, 0.5D));
-			Iterator iterator = list.iterator();
+			List<?> list = worldObj.getEntitiesWithinAABB(EntityItem.class, boundingBox.expand(0.5D, 0.0D, 0.5D));
+			Iterator<?> iterator = list.iterator();
 
 			while (iterator.hasNext()) {
 				EntityItem entityitem = (EntityItem) iterator.next();
@@ -509,11 +494,6 @@ public class EntityLivingChest extends EntityLivingUtility {
 			tasks.addTask(5, AICollectItem);
 			tasks.addTask(6, AIWander);
 		}
-	}
-
-	//蓋の角度をセット
-	public void setLidAngle(float lidAngle) {
-		this.lidAngle = lidAngle;
 	}
 
 }

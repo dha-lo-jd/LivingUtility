@@ -18,7 +18,6 @@ public class LivingChestMotionData extends BasicMotionDataImpl<EntityLivingChest
 	private LivingChestMotion<?> currentCoverMotion;
 
 	public int addTicks() {
-		prevTicks = ticks;
 		ticks++;
 		ticks = ticks > MAX_TICKS ? MAX_TICKS : ticks;
 		return ticks;
@@ -63,8 +62,11 @@ public class LivingChestMotionData extends BasicMotionDataImpl<EntityLivingChest
 		this.ticks = ticks;
 	}
 
-	public int subTicks() {
+	public void startUpdateTicks() {
 		prevTicks = ticks;
+	}
+
+	public int subTicks() {
 		ticks--;
 		ticks = ticks < 0 ? 0 : ticks;
 		return ticks;

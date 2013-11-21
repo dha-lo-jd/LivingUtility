@@ -40,6 +40,7 @@ public class LivingChestCoverMotionClose extends LivingChestCoverMotionBase {
 			motionMomentaryOpen.motionData.setCurrentCoverMotion(motionMomentaryOpen);
 		} else {
 			//アニメーション進行
+			super.updateMotion();
 			int ticks = motionData.subTicks();
 
 			//ticks0以下を以ってアニメーション終了ってことにする
