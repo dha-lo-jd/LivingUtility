@@ -55,10 +55,6 @@ public class MotionMap<E extends Entity, D extends MotionData<? super E>, M, MO 
 			return true;
 		}
 
-		private MotionMap<E, D, M, MO> getOuterType() {
-			return MotionMap.this;
-		}
-
 		@Override
 		public int hashCode() {
 			final int prime = 31;
@@ -67,6 +63,10 @@ public class MotionMap<E extends Entity, D extends MotionData<? super E>, M, MO 
 			result = prime * result + ((model == null) ? 0 : model.hashCode());
 			result = prime * result + ((motion == null) ? 0 : motion.hashCode());
 			return result;
+		}
+
+		private MotionMap<E, D, M, MO> getOuterType() {
+			return MotionMap.this;
 		}
 	}
 
