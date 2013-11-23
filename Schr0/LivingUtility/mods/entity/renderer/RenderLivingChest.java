@@ -24,89 +24,68 @@ import Schr0.LivingUtility.mods.entity.model.ModelLivingChest;
 
 public class RenderLivingChest extends RenderLiving
 {
-	protected ModelLivingChest				modelChastMain;
+	protected ModelLivingChest				modelLivingChestMain;
 	
-	private static final ResourceLocation	Waittexture		= new ResourceLocation(LivingUtility.TextureDomain + "textures/mobs/nomalchest/wait.png");
-	private static final ResourceLocation	Followtexture	= new ResourceLocation(LivingUtility.TextureDomain + "textures/mobs/nomalchest/follow.png");
-	private static final ResourceLocation	Freedomtexture	= new ResourceLocation(LivingUtility.TextureDomain + "textures/mobs/nomalchest/freedom.png");
-	private static final ResourceLocation	Straytexture	= new ResourceLocation(LivingUtility.TextureDomain + "textures/mobs/nomalchest/stray.png");
-	
-	private static final ResourceLocation	chesttexture	= new ResourceLocation("textures/entity/chest/normal.png");
+	private static final ResourceLocation	TAMED_TEXTURE	= new ResourceLocation( LivingUtility.TextureDomain + "textures/mobs/nomalchest/tamed.png" );
+	private static final ResourceLocation	WILD_TEXTURE	= new ResourceLocation( LivingUtility.TextureDomain + "textures/mobs/nomalchest/wild.png" );
+	private static final ResourceLocation	CHEST_TEXTURE	= new ResourceLocation( "textures/entity/chest/normal.png" );
 	
 	public RenderLivingChest()
 	{
-		super(new ModelLivingChest(), 0.5F);
-		this.setRenderPassModel(new ModelLivingChest());
-		this.modelChastMain = (ModelLivingChest) (this.mainModel);
+		super( new ModelLivingChest(), 0.5F );
+		this.setRenderPassModel( new ModelLivingChest() );
+		this.modelLivingChestMain = (ModelLivingChest) ( this.mainModel );
 	}
 	
 	//EntityとResourceLocationを関連付け
 	@Override
 	protected ResourceLocation getEntityTexture(Entity par1Entity)
 	{
-		return this.getTextures((EntityLivingChest) par1Entity);
+		return this.getTextures( (EntityLivingChest) par1Entity );
 	}
 	
 	//EntityのResourceLocationをget
 	private ResourceLocation getTextures(EntityLivingChest par1Entity)
 	{
 		//飼い慣らしされている場合
-		if (par1Entity.isTamed())
+		if( par1Entity.isTamed() )
 		{
-			if (par1Entity.isSitting())
-			{
-				return Waittexture;
-			}
-			else
-			{
-				if (par1Entity.getMode() == 0)
-				{
-					return Followtexture;
-				}
-				else if (par1Entity.getMode() == 1)
-				{
-					return Freedomtexture;
-				}
-				else
-				{
-					return Straytexture;
-				}
-			}
+			return TAMED_TEXTURE;
 		}
 		else
 		{
-			return Straytexture;
+			return WILD_TEXTURE;
 		}
 	}
 	
 	@Override
 	public void doRender(Entity par1Entity, double par2, double par4, double par6, float par8, float par9)
 	{
-		this.renderChast((EntityLivingChest) par1Entity, par2, par4, par6, par8, par9);
+		this.renderChast( (EntityLivingChest) par1Entity, par2, par4, par6, par8, par9 );
 	}
 	
 	@Override
 	public void doRenderLiving(EntityLiving par1EntityLiving, double par2, double par4, double par6, float par8, float par9)
 	{
-		this.renderChast((EntityLivingChest) par1EntityLiving, par2, par4, par6, par8, par9);
+		this.renderChast( (EntityLivingChest) par1EntityLiving, par2, par4, par6, par8, par9 );
 	}
 	
 	private void renderChast(EntityLivingChest par1Entity, double par2, double par4, double par6, float par8, float par9)
 	{
-		super.doRenderLiving(par1Entity, par2, par4, par6, par8, par9);
+		super.doRenderLiving( par1Entity, par2, par4, par6, par8, par9 );
 	}
 	
 	@Override
 	protected int shouldRenderPass(EntityLivingBase par1EntityLivingBase, int par2, float par3)
 	{
-		return this.renderEntityChastDeco((EntityLivingChest) par1EntityLivingBase, par2, par3);
+		return this.renderEntityChastDeco( (EntityLivingChest) par1EntityLivingBase, par2, par3 );
 	}
 	
 	private int renderEntityChastDeco(EntityLivingChest par1Entity, int par2, float par3)
 	{
-		if (par2 == 0)
+		if( par2 == 0 )
 		{
-			this.bindTexture(chesttexture);
+			this.bindTexture( CHEST_TEXTURE );
 			return 1;
 		}
 		else
@@ -118,124 +97,124 @@ public class RenderLivingChest extends RenderLiving
 	@Override
 	protected void renderEquippedItems(EntityLivingBase par1EntityLivingBase, float par2)
 	{
-		this.func_130005_c((EntityLiving) par1EntityLivingBase, par2);
+		this.func_130005_c( (EntityLiving) par1EntityLivingBase, par2 );
 	}
 	
 	//Itemを持たせる処理
 	private void func_130005_c(EntityLiving par1EntityLiving, float par2)
 	{
 		float f1 = 1.0F;
-		GL11.glColor3f(f1, f1, f1);
-		super.renderEquippedItems(par1EntityLiving, par2);
+		GL11.glColor3f( f1, f1, f1 );
+		super.renderEquippedItems( par1EntityLiving, par2 );
 		ItemStack itemstack = par1EntityLiving.getHeldItem();
-		ItemStack itemstack1 = par1EntityLiving.func_130225_q(3);
+		ItemStack itemstack1 = par1EntityLiving.func_130225_q( 3 );
 		float f2;
 		
-		if (itemstack1 != null)
+		if( itemstack1 != null )
 		{
 			GL11.glPushMatrix();
-			this.modelChastMain.Rarm.postRender(0.0625F);
+			this.modelLivingChestMain.Rarm.postRender( 0.0625F );
 			
-			IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(itemstack1, EQUIPPED);
-			boolean is3D = (customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, itemstack1, BLOCK_3D));
+			IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer( itemstack1, EQUIPPED );
+			boolean is3D = ( customRenderer != null && customRenderer.shouldUseRenderHelper( EQUIPPED, itemstack1, BLOCK_3D ) );
 			
-			if (itemstack1.getItem() instanceof ItemBlock)
+			if( itemstack1.getItem() instanceof ItemBlock )
 			{
-				if (is3D || RenderBlocks.renderItemIn3d(Block.blocksList[itemstack1.itemID].getRenderType()))
+				if( is3D || RenderBlocks.renderItemIn3d( Block.blocksList[itemstack1.itemID].getRenderType() ) )
 				{
 					f2 = 0.625F;
-					GL11.glTranslatef(0.0F, -0.25F, 0.0F);
-					GL11.glRotatef(90.0F, 0.0F, 1.0F, 0.0F);
-					GL11.glScalef(f2, -f2, -f2);
+					GL11.glTranslatef( 0.0F, -0.25F, 0.0F );
+					GL11.glRotatef( 90.0F, 0.0F, 1.0F, 0.0F );
+					GL11.glScalef( f2, -f2, -f2 );
 				}
 				
-				this.renderManager.itemRenderer.renderItem(par1EntityLiving, itemstack1, 0);
+				this.renderManager.itemRenderer.renderItem( par1EntityLiving, itemstack1, 0 );
 			}
-			else if (itemstack1.getItem().itemID == Item.skull.itemID)
+			else if( itemstack1.getItem().itemID == Item.skull.itemID )
 			{
 				f2 = 1.0625F;
-				GL11.glScalef(f2, -f2, -f2);
+				GL11.glScalef( f2, -f2, -f2 );
 				String s = "";
 				
-				if (itemstack1.hasTagCompound() && itemstack1.getTagCompound().hasKey("SkullOwner"))
+				if( itemstack1.hasTagCompound() && itemstack1.getTagCompound().hasKey( "SkullOwner" ) )
 				{
-					s = itemstack1.getTagCompound().getString("SkullOwner");
+					s = itemstack1.getTagCompound().getString( "SkullOwner" );
 				}
 				
-				TileEntitySkullRenderer.skullRenderer.func_82393_a(-0.5F, 0.0F, -0.5F, 1, 180.0F, itemstack1.getItemDamage(), s);
+				TileEntitySkullRenderer.skullRenderer.func_82393_a( -0.5F, 0.0F, -0.5F, 1, 180.0F, itemstack1.getItemDamage(), s );
 			}
 			
 			GL11.glPopMatrix();
 		}
 		
-		if (itemstack != null)
+		if( itemstack != null )
 		{
 			GL11.glPushMatrix();
 			
-			if (this.mainModel.isChild)
+			if( this.mainModel.isChild )
 			{
 				f2 = 0.5F;
-				GL11.glTranslatef(0.0F, 0.625F, 0.0F);
-				GL11.glRotatef(-20.0F, -1.0F, 0.0F, 0.0F);
-				GL11.glScalef(f2, f2, f2);
+				GL11.glTranslatef( 0.0F, 0.625F, 0.0F );
+				GL11.glRotatef( -20.0F, -1.0F, 0.0F, 0.0F );
+				GL11.glScalef( f2, f2, f2 );
 			}
 			
-			this.modelChastMain.Rarm.postRender(0.0625F);
-			GL11.glTranslatef(-0.0625F, 0.4375F, 0.0625F);
+			this.modelLivingChestMain.Rarm.postRender( 0.0625F );
+			GL11.glTranslatef( -0.0625F, 0.4375F, 0.0625F );
 			
-			IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(itemstack, EQUIPPED);
-			boolean is3D = (customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, itemstack, BLOCK_3D));
+			IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer( itemstack, EQUIPPED );
+			boolean is3D = ( customRenderer != null && customRenderer.shouldUseRenderHelper( EQUIPPED, itemstack, BLOCK_3D ) );
 			
-			if (itemstack.getItem() instanceof ItemBlock && (is3D || RenderBlocks.renderItemIn3d(Block.blocksList[itemstack.itemID].getRenderType())))
+			if( itemstack.getItem() instanceof ItemBlock && ( is3D || RenderBlocks.renderItemIn3d( Block.blocksList[itemstack.itemID].getRenderType() ) ) )
 			{
 				f2 = 0.5F;
-				GL11.glTranslatef(0.0F, 0.1875F, -0.3125F);
+				GL11.glTranslatef( 0.0F, 0.1875F, -0.3125F );
 				f2 *= 0.75F;
-				GL11.glRotatef(20.0F, 1.0F, 0.0F, 0.0F);
-				GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
-				GL11.glScalef(-f2, -f2, f2);
+				GL11.glRotatef( 20.0F, 1.0F, 0.0F, 0.0F );
+				GL11.glRotatef( 45.0F, 0.0F, 1.0F, 0.0F );
+				GL11.glScalef( -f2, -f2, f2 );
 			}
-			else if (itemstack.itemID == Item.bow.itemID)
+			else if( itemstack.itemID == Item.bow.itemID )
 			{
 				f2 = 0.625F;
-				GL11.glTranslatef(0.0F, 0.125F, 0.3125F);
-				GL11.glRotatef(-20.0F, 0.0F, 1.0F, 0.0F);
-				GL11.glScalef(f2, -f2, f2);
-				GL11.glRotatef(-100.0F, 1.0F, 0.0F, 0.0F);
-				GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
+				GL11.glTranslatef( 0.0F, 0.125F, 0.3125F );
+				GL11.glRotatef( -20.0F, 0.0F, 1.0F, 0.0F );
+				GL11.glScalef( f2, -f2, f2 );
+				GL11.glRotatef( -100.0F, 1.0F, 0.0F, 0.0F );
+				GL11.glRotatef( 45.0F, 0.0F, 1.0F, 0.0F );
 			}
-			else if (Item.itemsList[itemstack.itemID].isFull3D())
+			else if( Item.itemsList[itemstack.itemID].isFull3D() )
 			{
 				f2 = 0.625F;
 				
-				if (Item.itemsList[itemstack.itemID].shouldRotateAroundWhenRendering())
+				if( Item.itemsList[itemstack.itemID].shouldRotateAroundWhenRendering() )
 				{
-					GL11.glRotatef(180.0F, 0.0F, 0.0F, 1.0F);
-					GL11.glTranslatef(0.0F, -0.125F, 0.0F);
+					GL11.glRotatef( 180.0F, 0.0F, 0.0F, 1.0F );
+					GL11.glTranslatef( 0.0F, -0.125F, 0.0F );
 				}
 				
 				this.func_82422_c();
-				GL11.glScalef(f2, -f2, f2);
-				GL11.glRotatef(-100.0F, 1.0F, 0.0F, 0.0F);
-				GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
+				GL11.glScalef( f2, -f2, f2 );
+				GL11.glRotatef( -100.0F, 1.0F, 0.0F, 0.0F );
+				GL11.glRotatef( 45.0F, 0.0F, 1.0F, 0.0F );
 			}
 			else
 			{
 				f2 = 0.375F;
-				GL11.glTranslatef(0.25F, 0.1875F, -0.1875F);
-				GL11.glScalef(f2, f2, f2);
-				GL11.glRotatef(60.0F, 0.0F, 0.0F, 1.0F);
-				GL11.glRotatef(-90.0F, 1.0F, 0.0F, 0.0F);
-				GL11.glRotatef(20.0F, 0.0F, 0.0F, 1.0F);
+				GL11.glTranslatef( 0.25F, 0.1875F, -0.1875F );
+				GL11.glScalef( f2, f2, f2 );
+				GL11.glRotatef( 60.0F, 0.0F, 0.0F, 1.0F );
+				GL11.glRotatef( -90.0F, 1.0F, 0.0F, 0.0F );
+				GL11.glRotatef( 20.0F, 0.0F, 0.0F, 1.0F );
 			}
 			
-			this.renderManager.itemRenderer.renderItem(par1EntityLiving, itemstack, 0);
+			this.renderManager.itemRenderer.renderItem( par1EntityLiving, itemstack, 0 );
 			
-			if (itemstack.getItem().requiresMultipleRenderPasses())
+			if( itemstack.getItem().requiresMultipleRenderPasses() )
 			{
-				for (int x = 1; x < itemstack.getItem().getRenderPasses(itemstack.getItemDamage()); x++)
+				for( int x = 1; x < itemstack.getItem().getRenderPasses( itemstack.getItemDamage() ); x++ )
 				{
-					this.renderManager.itemRenderer.renderItem(par1EntityLiving, itemstack, x);
+					this.renderManager.itemRenderer.renderItem( par1EntityLiving, itemstack, x );
 				}
 			}
 			
@@ -246,7 +225,7 @@ public class RenderLivingChest extends RenderLiving
 	//持ち手の角度？
 	private void func_82422_c()
 	{
-		GL11.glTranslatef(0.0F, 0.0875F, -0.05F);
+		GL11.glTranslatef( 0.0F, 0.0875F, -0.05F );
 	}
 	
 }
