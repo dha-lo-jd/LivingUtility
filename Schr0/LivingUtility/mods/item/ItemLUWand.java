@@ -29,9 +29,7 @@ public class ItemLUWand extends Item
 	//Iconの配列
 	private final String[]	textures	= new String[]
 										{
-										LivingUtility.TextureDomain + "UtilityWand_0",
-										LivingUtility.TextureDomain + "UtilityWand_1",
-										LivingUtility.TextureDomain + "UtilityWand_2",
+										LivingUtility.TextureDomain + "UtilityWand",
 										};
 	
 	@SideOnly(Side.CLIENT)
@@ -39,18 +37,18 @@ public class ItemLUWand extends Item
 	
 	public ItemLUWand(int id)
 	{
-		super(id);
+		super( id );
 		this.maxStackSize = 1;
-		this.setHasSubtypes(true);
-		this.setMaxDamage(0);
+		this.setHasSubtypes( true );
+		this.setMaxDamage( 0 );
 	}
 	
 	//内部名の設定
 	@Override
 	public String getUnlocalizedName(ItemStack par1ItemStack)
 	{
-		int Meta = (textures.length - 1);
-		int i = MathHelper.clamp_int(par1ItemStack.getItemDamage(), 0, Meta);
+		int Meta = ( textures.length - 1 );
+		int i = MathHelper.clamp_int( par1ItemStack.getItemDamage(), 0, Meta );
 		return super.getUnlocalizedName() + "." + "LU_Materials_" + i;
 	}
 	
@@ -58,8 +56,8 @@ public class ItemLUWand extends Item
 	@Override
 	public Icon getIconFromDamage(int par1)
 	{
-		int Meta = (textures.length - 1);
-		int i = MathHelper.clamp_int(par1, 0, Meta);
+		int Meta = ( textures.length - 1 );
+		int i = MathHelper.clamp_int( par1, 0, Meta );
 		return this.Icons[i];
 	}
 	
@@ -68,11 +66,11 @@ public class ItemLUWand extends Item
 	@Override
 	public void registerIcons(IconRegister par1IconRegister)
 	{
-		this.Icons = new Icon[textures.length];
+		this.Icons = new Icon[ textures.length ];
 		
-		for (int i = 0; i < textures.length; ++i)
+		for( int i = 0; i < textures.length; ++i )
 		{
-			this.Icons[i] = par1IconRegister.registerIcon(textures[i]);
+			this.Icons[i] = par1IconRegister.registerIcon( textures[i] );
 		}
 	}
 	
@@ -81,29 +79,10 @@ public class ItemLUWand extends Item
 	@SideOnly(Side.CLIENT)
 	public void getSubItems(int par1, CreativeTabs par2CreativeTabs, List par3List)
 	{
-		for (int i = 0; i < textures.length; i++)
+		for( int i = 0; i < textures.length; i++ )
 		{
-			par3List.add(new ItemStack(par1, 1, i));
+			par3List.add( new ItemStack( par1, 1, i ) );
 		}
-	}
-	
-	//アイテム情報の表示
-	@Override
-	public void addInformation(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, List par3List, boolean par4)
-	{
-		String mode = "Sit";
-		
-		if (par1ItemStack.getItemDamage() == 1)
-		{
-			mode = "Follow";
-		}
-		
-		if (par1ItemStack.getItemDamage() == 2)
-		{
-			mode = "Freedom";
-		}
-		
-		par3List.add("Order : " + mode);
 	}
 	
 	//引き絞りの長さ
@@ -125,24 +104,24 @@ public class ItemLUWand extends Item
 	public boolean itemInteractionForEntity(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, EntityLivingBase par3EntityLivingBase)
 	{
 		//EntityLivingUtilityがプレーヤーに乗っている場合
-		if (par2EntityPlayer.riddenByEntity != null && par2EntityPlayer.riddenByEntity instanceof EntityLivingUtility)
+		if( par2EntityPlayer.riddenByEntity != null && par2EntityPlayer.riddenByEntity instanceof EntityLivingUtility )
 		{
 			EntityLivingUtility LivingUtility = (EntityLivingUtility) par2EntityPlayer.riddenByEntity;
 			
-			if (par3EntityLivingBase instanceof EntityLivingUtility)
+			if( par3EntityLivingBase instanceof EntityLivingUtility )
 			{
 				return false;
 			}
 			else
 			{
 				//騎乗の処理（独自）
-				LivingUtility.setMount(par3EntityLivingBase);
+				LivingUtility.setMount( par3EntityLivingBase );
 				return true;
 			}
 		}
 		else
 		{
-			return super.itemInteractionForEntity(par1ItemStack, par2EntityPlayer, par3EntityLivingBase);
+			return super.itemInteractionForEntity( par1ItemStack, par2EntityPlayer, par3EntityLivingBase );
 		}
 	}
 	
@@ -155,31 +134,8 @@ public class ItemLUWand extends Item
 		double posY = par3EntityPlayer.posY;
 		double posZ = par3EntityPlayer.posZ;
 		
-		if (par3EntityPlayer.isSneaking())
-		{
-			if (mode < 2)
-			{
-				mode++;
-			}
-			else
-			{
-				mode = 0;
-			}
-			
-			//SEの出力（独自
-			this.playSE(par2World, posX, posY, posZ, "random.orb", 1.0F, 1.0F);
-			
-			//ダメージ値を変化
-			par1ItemStack.setItemDamage(mode);
-			
-			//Itemを振る動作
-			par3EntityPlayer.swingItem();
-		}
-		else
-		{
-			//引き絞る
-			par3EntityPlayer.setItemInUse(par1ItemStack, this.getMaxItemUseDuration(par1ItemStack));
-		}
+		//引き絞る
+		par3EntityPlayer.setItemInUse( par1ItemStack, this.getMaxItemUseDuration( par1ItemStack ) );
 		
 		return par1ItemStack;
 	}
@@ -200,42 +156,28 @@ public class ItemLUWand extends Item
 		double posZ = par3EntityPlayer.posZ;
 		
 		//32tick以上で離した場合
-		if (32 < this.getMaxItemUseDuration(par1ItemStack) - par4)
+		if( 32 < this.getMaxItemUseDuration( par1ItemStack ) - par4 )
 		{
 			//EntityPlayerから 4.0 * 0.5 * 4.0 の範囲
-			List list = par2World.getEntitiesWithinAABB(EntityLivingUtility.class, par3EntityPlayer.boundingBox.expand(4.0D, 0.5D, 4.0D));
+			List list = par2World.getEntitiesWithinAABB( EntityLivingUtility.class, par3EntityPlayer.boundingBox.expand( 4.0D, 0.5D, 4.0D ) );
 			Iterator iterator = list.iterator();
 			boolean isSwing = false;
 			
-			while (iterator.hasNext())
+			while( iterator.hasNext() )
 			{
 				EntityLivingUtility LivingUtility = (EntityLivingUtility) iterator.next();
 				
 				//飼いならし状態 ＆ 死んでいない場合
-				if (LivingUtility.isTamed() && par3EntityPlayer.username.equalsIgnoreCase(LivingUtility.getOwnerName()) && !LivingUtility.isDead)
+				if( LivingUtility.isTamed() && par3EntityPlayer.username.equalsIgnoreCase( LivingUtility.getOwnerName() ) && !LivingUtility.isDead )
 				{
-					int mode = par1ItemStack.getItemDamage() - 1;
-					
-					if (mode == -1)
-					{
-						//お座りの処理（独自）
-						LivingUtility.setSafeSit();
-					}
-					else
-					{
-						//Modeのset
-						LivingUtility.setMode(mode);
-						
-						//AIの切り替えの処理(独自)
-						LivingUtility.setAITask();
-					}
-					
+					//AIの切り替えの処理(独自)
+					LivingUtility.setAITask();
 					isSwing = true;
 				}
 			}
 			
 			//isSwingがtrueの場合
-			if (isSwing)
+			if( isSwing )
 			{
 				//Itemを振る動作
 				par3EntityPlayer.swingItem();
@@ -249,100 +191,100 @@ public class ItemLUWand extends Item
 	public boolean onItemUse(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, World par3World, int par4, int par5, int par6, int par7, float par8, float par9, float par10)
 	{
 		//EntityLivingUtilityがプレーヤーに乗っている場合
-		if (par2EntityPlayer.riddenByEntity != null && par2EntityPlayer.riddenByEntity instanceof EntityLivingUtility)
+		if( par2EntityPlayer.riddenByEntity != null && par2EntityPlayer.riddenByEntity instanceof EntityLivingUtility )
 		{
 			//面により座標を再設定
-			if (par7 == 0)
+			if( par7 == 0 )
 				--par5;
-			if (par7 == 1)
+			if( par7 == 1 )
 				++par5;
-			if (par7 == 2)
+			if( par7 == 2 )
 				--par6;
-			if (par7 == 3)
+			if( par7 == 3 )
 				++par6;
-			if (par7 == 4)
+			if( par7 == 4 )
 				--par4;
-			if (par7 == 5)
+			if( par7 == 5 )
 				++par4;
 			
-			if (!par2EntityPlayer.canPlayerEdit(par4, par5, par6, par7, par1ItemStack))
+			if( !par2EntityPlayer.canPlayerEdit( par4, par5, par6, par7, par1ItemStack ) )
 			{
 				return false;
 			}
 			//対象が空気ブロックである場合
-			else if (par3World.isAirBlock(par4, par5, par6))
+			else if( par3World.isAirBlock( par4, par5, par6 ) )
 			{
 				//EntityLivingChestがプレーヤーに乗っている場合
-				if (par2EntityPlayer.riddenByEntity instanceof EntityLivingChest)
+				if( par2EntityPlayer.riddenByEntity instanceof EntityLivingChest )
 				{
 					EntityLivingChest LivingChest = (EntityLivingChest) par2EntityPlayer.riddenByEntity;
 					
 					LivingChest.openChest();
 					
 					//クライアントだけの処理
-					if (!par3World.isRemote)
+					if( !par3World.isRemote )
 					{
-						if (LivingChest.getBlockStack() != null)
+						if( LivingChest.getBlockStack() != null )
 						{
 							ItemStack block = LivingChest.getBlockStack().copy();
 							
 							//元のBlockの設置
-							par3World.setBlock(par4, par5, par6, block.itemID, block.getItemDamage(), 3);
+							par3World.setBlock( par4, par5, par6, block.itemID, block.getItemDamage(), 3 );
 						}
 						else
 						{
 							//チェストの設置
-							par3World.setBlock(par4, par5, par6, Block.chest.blockID, 0, 3);
+							par3World.setBlock( par4, par5, par6, Block.chest.blockID, 0, 3 );
 						}
 						
 						//設置したTileEntityの読み込み
-						TileEntity Tile = par3World.getBlockTileEntity(par4, par5, par6);
+						TileEntity Tile = par3World.getBlockTileEntity( par4, par5, par6 );
 						
 						//TileEntityChestの場合
-						if (Tile != null && Tile instanceof TileEntityChest)
+						if( Tile != null && Tile instanceof TileEntityChest )
 						{
 							TileEntityChest TileChest = (TileEntityChest) Tile;
 							
-							if (TileChest.numUsingPlayers > 0)
+							if( TileChest.numUsingPlayers > 0 )
 							{
 								return false;
 							}
 							
 							//中身がある場合には保持
 							int newSize = TileChest.getSizeInventory();
-							ItemStack[] chestContents = ObfuscationReflectionHelper.getPrivateValue(TileEntityChest.class, TileChest, 0);
-							System.arraycopy(LivingChest.ContainerItems, 0, chestContents, 0, Math.min(newSize, LivingChest.ContainerItems.length));
+							ItemStack[] chestContents = ObfuscationReflectionHelper.getPrivateValue( TileEntityChest.class, TileChest, 0 );
+							System.arraycopy( LivingChest.containerItems, 0, chestContents, 0, Math.min( newSize, LivingChest.containerItems.length ) );
 							
-							for (int i = 0; i < Math.min(newSize, LivingChest.ContainerItems.length); i++)
+							for( int i = 0; i < Math.min( newSize, LivingChest.containerItems.length ); i++ )
 							{
-								LivingChest.ContainerItems[i] = null;
+								LivingChest.containerItems[i] = null;
 							}
 							
 							TileChest.updateContainingBlockInfo();
 							TileChest.checkForAdjacentChests();
 							
 							//TileEntityの設置
-							par3World.setBlockTileEntity(par4, par5, par6, TileChest);
+							par3World.setBlockTileEntity( par4, par5, par6, TileChest );
 						}
 						
 						//コアをドロップ
-						LivingChest.entityDropItem(new ItemStack(LivingUtility.Item_LUMaterial.itemID, 1, 0), 0.5F);
+						LivingChest.entityDropItem( new ItemStack( LivingUtility.Item_LUMaterial.itemID, 1, 0 ), 0.5F );
 						
 						//消滅
 						LivingChest.setDead();
 					}
 					
 					//BlockChestを継承している場合
-					if (Block.blocksList[par3World.getBlockId(par4, par5, par6)] instanceof BlockChest)
+					if( Block.blocksList[par3World.getBlockId( par4, par5, par6 )] instanceof BlockChest )
 					{
-						Block blockChest = (BlockChest) Block.blocksList[par3World.getBlockId(par4, par5, par6)];
+						Block blockChest = (BlockChest) Block.blocksList[par3World.getBlockId( par4, par5, par6 )];
 						
 						//向きの修正
-						blockChest.onBlockPlacedBy(par3World, par4, par5, par6, par2EntityPlayer, par1ItemStack);
+						blockChest.onBlockPlacedBy( par3World, par4, par5, par6, par2EntityPlayer, par1ItemStack );
 					}
 					
 					//SEの出力（独自
-					this.playSE(par3World, par4, par5, par6, "random.pop", 1.0F, 1.0F);
+					this.playSE( par3World, par4, par5, par6, "random.pop", 1.0F, 1.0F );
 					
 					return true;
 				}
@@ -355,16 +297,16 @@ public class ItemLUWand extends Item
 	//SEの出力（独自）
 	private void playSE(World world, double PosX, double PosY, double PosZ, String type, float vol, float pitch)
 	{
-		world.playSoundEffect(PosX, PosY, PosZ, type, vol, pitch);
+		world.playSoundEffect( PosX, PosY, PosZ, type, vol, pitch );
 	}
 	
 	//メッセージの表示（独自）
 	private void Message(EntityPlayer player, String messe)
 	{
 		//クライアントだけの処理
-		if (!player.worldObj.isRemote)
+		if( !player.worldObj.isRemote )
 		{
-			player.addChatMessage(messe);
+			player.addChatMessage( messe );
 		}
 	}
 	

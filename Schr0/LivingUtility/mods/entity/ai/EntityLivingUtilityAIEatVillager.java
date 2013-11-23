@@ -110,10 +110,10 @@ public class EntityLivingUtilityAIEatVillager extends AIBaseEntityLivingUtility 
 	private void eatAction() {
 		//ぱこぱこ
 
-		LivingChestMotionData motionData = ((EntityLivingChest) theUtility).getMotionData();
-		LivingChestCoverMotionEat motionEat = motionData.getMotion(ModelLivingChest.class,
-				LivingChestCoverMotionEat.class);
-		motionData.setCurrentCoverMotion(motionEat);
+//		LivingChestMotionData motionData = ((EntityLivingChest) theUtility).getMotionData();
+//		LivingChestCoverMotionEat motionEat = motionData.getMotion(ModelLivingChest.class,
+//				LivingChestCoverMotionEat.class);
+//		motionData.setCurrentCoverMotion(motionEat);
 		//食べ散らかしはiconcrack_ItemID_Damegeで指定
 		theUtility.getDataWatcher().updateObject(30, "iconcrack_363_0");
 		theUtility.playSound("random.eat", 0.5F + 0.5F * theWorld.rand.nextInt(2),

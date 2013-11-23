@@ -159,10 +159,10 @@ public class ModelLivingChest extends ModelBase {
 	public void setLivingAnimations(EntityLivingBase par1EntityLivingBase, float par2, float par3, float par4) {
 		EntityLivingChest LivingChest = (EntityLivingChest) par1EntityLivingBase;
 
-		LivingChestMotionData motionData = LivingChest.getMotionData();
-		LivingChestMotion<ModelLivingChest> mo = motionData.getMotion(this, motionData.getCurrentCoverMotion());
-
-		mo.motionTo(this, par4);
+//		LivingChestMotionData motionData = LivingChest.getMotionData();
+//		LivingChestMotion<ModelLivingChest> mo = motionData.getMotion(this, motionData.getCurrentCoverMotion());
+//
+//		mo.motionTo(this, par4);
 	}
 
 	// モーション
