@@ -24,18 +24,18 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 public class EntityLivingUtilityAIEatVillager extends AIBaseEntityLivingUtility {
-	// 捕食開始距離
+	//捕食開始距離
 	private static final float EAT_RANGE = 1F;
-	// おっかけ時間制限
+	//おっかけ時間制限
 	private static final int TIME_LIMIT = 600;
-	// ドロップ開始率
+	//ドロップ開始率
 	private static final float DROP_RATE = 0.1F;
-	// ドロップ連鎖率
+	//ドロップ連鎖率
 	private static final float CHAIN_DROP_RATE = 0.25F;
-	// ドロップアイテムマップ
+	//ドロップアイテムマップ
 	private static final Multimap<Integer, ItemStack> DROP_MAP = ArrayListMultimap.create();
 	static {
-		// 同レアリティからはランダムで1種のみ
+		//同レアリティからはランダムで1種のみ
 		DROP_MAP.put(0, new ItemStack(Item.rottenFlesh));
 		DROP_MAP.put(0, new ItemStack(Item.silk));
 		DROP_MAP.put(1, new ItemStack(Item.leather));
@@ -47,11 +47,11 @@ public class EntityLivingUtilityAIEatVillager extends AIBaseEntityLivingUtility 
 		DROP_MAP.put(2, new ItemStack(Item.chickenRaw));
 		DROP_MAP.put(3, new ItemStack(Item.goldNugget));
 		DROP_MAP.put(3, new ItemStack(Item.redstone, 2));
-		DROP_MAP.put(3, new ItemStack(Item.dyePowder, 2, 4));// らぴす
+		DROP_MAP.put(3, new ItemStack(Item.dyePowder, 2, 4));//らぴす
 		DROP_MAP.put(4, new ItemStack(Item.ingotIron));
 		DROP_MAP.put(4, new ItemStack(Item.goldNugget, 2));
 		DROP_MAP.put(4, new ItemStack(Item.redstone, 4));
-		DROP_MAP.put(4, new ItemStack(Item.dyePowder, 4, 4));// らぴす
+		DROP_MAP.put(4, new ItemStack(Item.dyePowder, 4, 4));//らぴす
 		DROP_MAP.put(4, new ItemStack(Item.glowstone, 2));
 		DROP_MAP.put(5, new ItemStack(Item.ingotGold));
 		DROP_MAP.put(5, new ItemStack(Item.ingotIron, 2));
@@ -61,22 +61,22 @@ public class EntityLivingUtilityAIEatVillager extends AIBaseEntityLivingUtility 
 		DROP_MAP.put(7, new ItemStack(Item.diamond));
 		DROP_MAP.put(7, new ItemStack(Item.emerald, 2));
 	}
-	// 獲物
+	//獲物
 	private EntityLiving entity;
-	// つかまえた
+	//つかまえた
 	private boolean capture;
-	// おっかけ時間
+	//おっかけ時間
 	private int time;
 
 	static {
 		ModelLivingChest.registMotionFactory(new MotionFactory() {
 			@Override
-			public LivingChestMotion<ModelLivingChest> create(EntityLivingChest chast, LivingChestMotionData targetMotionData,
-					LivingChestMotionMap<ModelLivingChest> map) {
-				LivingChestCoverMotionOpen motionOpen = (LivingChestCoverMotionOpen) map.get(map.new Key(ModelLivingChest.class,
-						LivingChestCoverMotionOpen.class));
-				LivingChestCoverMotionClose motionClose = (LivingChestCoverMotionClose) map.get(map.new Key(ModelLivingChest.class,
-						LivingChestCoverMotionClose.class));
+			public LivingChestMotion<ModelLivingChest> create(EntityLivingChest chast,
+					LivingChestMotionData targetMotionData, LivingChestMotionMap<ModelLivingChest> map) {
+				LivingChestCoverMotionOpen motionOpen = (LivingChestCoverMotionOpen) map.get(map.new Key(
+						ModelLivingChest.class, LivingChestCoverMotionOpen.class));
+				LivingChestCoverMotionClose motionClose = (LivingChestCoverMotionClose) map.get(map.new Key(
+						ModelLivingChest.class, LivingChestCoverMotionClose.class));
 				return new LivingChestCoverMotionEat(chast, targetMotionData, motionOpen, motionClose);
 			}
 		});
@@ -92,6 +92,43 @@ public class EntityLivingUtilityAIEatVillager extends AIBaseEntityLivingUtility 
 		return entity != null && time++ < TIME_LIMIT || capture;
 	}
 
+	private void dropChance(int reality) {
+		ItemStack is = null;
+		if (DROP_MAP.containsKey(reality)) {
+			is = getRandomDrop(reality).copy();
+		}
+		//たまーにポロリもアリかなって
+		if (is != null) {
+			theUtility.entityDropItem(is, 0.5F);
+			//確率で村人のサイフ(?)からさらなるレアをゲット！
+			if (theWorld.rand.nextFloat() < CHAIN_DROP_RATE) {
+				dropChance(reality + 1);
+			}
+		}
+	}
+
+	private void eatAction() {
+		//ぱこぱこ
+
+//		LivingChestMotionData motionData = ((EntityLivingChest) theUtility).getMotionData();
+//		LivingChestCoverMotionEat motionEat = motionData.getMotion(ModelLivingChest.class,
+//				LivingChestCoverMotionEat.class);
+//		motionData.setCurrentCoverMotion(motionEat);
+		//食べ散らかしはiconcrack_ItemID_Damegeで指定
+		theUtility.getDataWatcher().updateObject(30, "iconcrack_363_0");
+		theUtility.playSound("random.eat", 0.5F + 0.5F * theWorld.rand.nextInt(2),
+				(theWorld.rand.nextFloat() - theWorld.rand.nextFloat()) * 0.2F + 1.0F);
+	}
+
+	private List<Entity> getInRangeEntitys(int rangeX, int rangeY, int rangeZ) {
+		return theWorld.getEntitiesWithinAABBExcludingEntity(theUtility,
+				theUtility.boundingBox.expand(rangeX, rangeY, rangeZ));
+	}
+
+	private ItemStack getRandomDrop(int reality) {
+		return (ItemStack) DROP_MAP.get(reality).toArray()[theWorld.rand.nextInt(DROP_MAP.get(reality).size())];
+	}
+
 	@Override
 	public void resetTask() {
 	}
@@ -100,7 +137,7 @@ public class EntityLivingUtilityAIEatVillager extends AIBaseEntityLivingUtility 
 	public boolean shouldExecute() {
 		entity = null;
 		float minDistance = 100;
-		// 最短距離の獲物を探そう！
+		//最短距離の獲物を探そう！
 		for (Entity e : getInRangeEntitys(5, 2, 5)) {
 			if (e instanceof EntityVillager) {
 				if (theUtility.getDistanceToEntity(e) < minDistance) {
@@ -124,65 +161,29 @@ public class EntityLivingUtilityAIEatVillager extends AIBaseEntityLivingUtility 
 			if (!capture) {
 				if (theUtility.getDistanceToEntity(entity) < EntityLivingUtilityAIEatVillager.EAT_RANGE) {
 					capture = true;
-					// 頑張って逃げよう！
-					entity.tasks.addTask(0, new EntityAIAvoidEntity(theUtility, theUtility.getClass(), 8.0F, 1.2D, 1.2D));
+					//頑張って逃げよう！
+					entity.tasks.addTask(0,
+							new EntityAIAvoidEntity(theUtility, theUtility.getClass(), 8.0F, 1.2D, 1.2D));
 					time = TIME_LIMIT;
 				}
 			} else {
 				entity.attackEntityFrom(DamageSource.magic, 1);
-				// もぐもぐ
+				//もぐもぐ
 				eatAction();
-				// 剥ぎ取りタイム
+				//剥ぎ取りタイム
 				if (theWorld.rand.nextFloat() < DROP_RATE) {
 					dropChance(0);
 				}
-				// お食事終了！
+				//お食事終了！
 				if (entity.isDead) {
 					entity = null;
 					capture = false;
 					theWorld.playSoundAtEntity(theUtility, "random.burp", 1.5F, theWorld.rand.nextFloat() * 0.1F + 0.9F);
 					((EntityLivingChest) theUtility).setOpen(false);
-					// パーティクルを止める
+					//パーティクルを止める
 					theUtility.getDataWatcher().updateObject(30, "");
 				}
 			}
 		}
-	}
-
-	private void dropChance(int reality) {
-		ItemStack is = null;
-		if (DROP_MAP.containsKey(reality)) {
-			is = getRandomDrop(reality).copy();
-		}
-		// たまーにポロリもアリかなって
-		if (is != null) {
-			theUtility.entityDropItem(is, 0.5F);
-			// 確率で村人のサイフ(?)からさらなるレアをゲット！
-			if (theWorld.rand.nextFloat() < CHAIN_DROP_RATE) {
-				dropChance(reality + 1);
-			}
-		}
-	}
-
-	private void eatAction() {
-		// ぱこぱこ
-
-		// LivingChestMotionData motionData = ((EntityLivingChest)
-		// theUtility).getMotionData();
-		// LivingChestCoverMotionEat motionEat =
-		// motionData.getMotion(ModelLivingChest.class,
-		// LivingChestCoverMotionEat.class);
-		// motionData.setCurrentCoverMotion(motionEat);
-		// 食べ散らかしはiconcrack_ItemID_Damegeで指定
-		theUtility.getDataWatcher().updateObject(30, "iconcrack_363_0");
-		theUtility.playSound("random.eat", 0.5F + 0.5F * theWorld.rand.nextInt(2), (theWorld.rand.nextFloat() - theWorld.rand.nextFloat()) * 0.2F + 1.0F);
-	}
-
-	private List<Entity> getInRangeEntitys(int rangeX, int rangeY, int rangeZ) {
-		return theWorld.getEntitiesWithinAABBExcludingEntity(theUtility, theUtility.boundingBox.expand(rangeX, rangeY, rangeZ));
-	}
-
-	private ItemStack getRandomDrop(int reality) {
-		return (ItemStack) DROP_MAP.get(reality).toArray()[theWorld.rand.nextInt(DROP_MAP.get(reality).size())];
 	}
 }

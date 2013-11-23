@@ -57,21 +57,115 @@ public class EntityLivingChest extends EntityLivingUtility {
 		}
 	}
 
+	// 内部インベントリの大きさ（abstract独自）
+	@Override
+	public int getLivingInventrySize() {
+		return 27;
+	}
+
+	// AIの切り替えの処理(abstract独自)
+	@Override
+	public void setAITask() {
+		super.setAITask();
+
+		// 飼いならし状態の場合
+		if (isTamed()) {
+			// 手に何も持って『いない』場合
+			if (getHeldItem() == null) {
+				// メッセージの出力（独自）
+				Information(getInvName() + " : Follow");
+
+				// 4 追従
+				tasks.addTask(4, aiFollowOwner);
+			}
+			// 手に何か持って『いる』場合
+			else {
+				// 『羽根』を持っている場合
+				if (getHeldItem().isItemEqual(new ItemStack(Item.feather))) {
+					// メッセージの出力（独自）
+					Information(getInvName() + " : Freedom");
+
+					// 4 アイテム回収
+					// 5 自由行動
+					tasks.addTask(4, aiCollectItem);
+					tasks.addTask(5, aiWander);
+				}
+
+				// 『チェスト』を持っている場合
+				if (getHeldItem().isItemEqual(new ItemStack(Block.chest))) {
+					// メッセージの出力（独自）
+					Information(getInvName() + " : FindChest");
+
+					// 4 チェストの走査
+					// 5 アイテム回収
+					// 6 自由行動
+					tasks.addTask(4, aiFindChest);
+					tasks.addTask(5, aiCollectItem);
+					tasks.addTask(6, aiWander);
+				}
+
+				// 『クワ』を持っている場合
+				if (getHeldItem().getItem() instanceof ItemHoe) {
+					// メッセージの出力（独自）
+					Information(getInvName() + " : Farmer");
+
+					// 4 農業
+					// 5 自由行動
+					tasks.addTask(4, aiFarmer);
+					tasks.addTask(5, aiWander);
+				}
+
+				// 『スカル』を持っている場合
+				if (getHeldItem().getItem() instanceof ItemSkull) {
+					// メッセージの出力（独自）
+					Information(getInvName() + " : Eat Villager");
+
+					// 4 村人食い
+					// 5 自由行動
+					tasks.addTask(4, aiEatVillager);
+					tasks.addTask(5, aiWander);
+				}
+			}
+		}
+		// 野生状態の場合
+		else {
+			// 5 アイテム回収
+			// 6 自由行動
+			tasks.addTask(5, aiCollectItem);
+			tasks.addTask(6, aiWander);
+		}
+	}
+
 	// 蓋の角度（独自）
 	// @SideOnly(Side.CLIENT)
 	public float getCoverAngle(float par1) {
 		return (prevLidAngle + (lidAngle - prevLidAngle) * par1) * 0.5F * (float) Math.PI;
 	}
 
-	// 蓋の角度を取得
-	public float getLidAngle() {
-		return lidAngle;
+	// 属性の付与
+	@Override
+	protected void applyEntityAttributes() {
+		super.applyEntityAttributes();
+		getEntityAttribute(SharedMonsterAttributes.maxHealth).setAttribute(20.0D);
+		getEntityAttribute(SharedMonsterAttributes.movementSpeed).setAttribute(0.25D);
 	}
 
-	// 内部インベントリの大きさ（abstract独自）
+	// 足音
 	@Override
-	public int getLivingInventrySize() {
-		return 27;
+	protected void playStepSound(int par1, int par2, int par3, int par4) {
+		playSound("step.wood", 0.25F, 1.0F);
+	}
+
+	// 被ダメージ時の音声
+	@Override
+	protected String getHurtSound() {
+		return "dig.wood";
+	}
+
+	// 死亡時の音声
+	@Override
+	protected String getDeathSound() {
+		return "random.break";
 	}
 
 	// インタラクトした際の処理
@@ -205,6 +299,58 @@ public class EntityLivingChest extends EntityLivingUtility {
 		}
 	}
 
+	// Entityのアップデート
+	@Override
+	public void onUpdate() {
+		super.onUpdate();
+
+		// 何かに乗っている場合
+		if (isRiding()) {
+			EntityLivingBase Owner = (EntityLivingBase) ridingEntity;
+
+			// Ownerと同様の正面を向く
+			prevRotationYaw = rotationYaw = Owner.rotationYaw;
+		}
+
+		// 蓋の角度・音声の設定//
+		prevLidAngle = lidAngle;
+		float f = 0.2F;// 開閉速度 (0.1F)
+
+		if (isOpen() && lidAngle == 0.0F) {
+			// 音を出す
+			playSE("random.chestopen", 0.5F, worldObj.rand.nextFloat() * 0.1F + 0.9F);
+			// this.playSE("random.eat", 0.5F, this.worldObj.rand.nextFloat() *
+			// 0.1F + 0.9F);
+		}
+
+		if (!isOpen() && lidAngle > 0.0F || isOpen() && lidAngle < 1.0F) {
+			float f1 = lidAngle;
+
+			if (isOpen()) {
+				lidAngle += f;
+			} else {
+				lidAngle -= f;
+			}
+
+			if (lidAngle > 1.0F) {
+				lidAngle = 1.0F;
+			}
+
+			float f2 = 0.5F;
+
+			if (lidAngle < f2 && f1 >= f2) {
+				// 音を出す
+				playSE("random.chestclosed", 0.5F, worldObj.rand.nextFloat() * 0.1F + 0.9F);
+				// this.playSE("random.burp", 0.5F,
+				// this.worldObj.rand.nextFloat() * 0.1F + 0.9F);
+			}
+
+			if (lidAngle < 0.0F) {
+				lidAngle = 0.0F;
+			}
+		}
+	}
+
 	// 生物のアップデート
 	@Override
 	public void onLivingUpdate() {
@@ -316,144 +462,6 @@ public class EntityLivingChest extends EntityLivingUtility {
 		}
 	}
 
-	// Entityのアップデート
-	@Override
-	public void onUpdate() {
-		super.onUpdate();
-
-		// 何かに乗っている場合
-		if (isRiding()) {
-			EntityLivingBase Owner = (EntityLivingBase) ridingEntity;
-
-			// Ownerと同様の正面を向く
-			prevRotationYaw = rotationYaw = Owner.rotationYaw;
-		}
-
-		// 蓋の角度・音声の設定//
-		prevLidAngle = lidAngle;
-		float f = 0.2F;// 開閉速度 (0.1F)
-
-		if (isOpen() && lidAngle == 0.0F) {
-			// 音を出す
-			playSE("random.chestopen", 0.5F, worldObj.rand.nextFloat() * 0.1F + 0.9F);
-			// this.playSE("random.eat", 0.5F, this.worldObj.rand.nextFloat() *
-			// 0.1F + 0.9F);
-		}
-
-		if (!isOpen() && lidAngle > 0.0F || isOpen() && lidAngle < 1.0F) {
-			float f1 = lidAngle;
-
-			if (isOpen()) {
-				lidAngle += f;
-			} else {
-				lidAngle -= f;
-			}
-
-			if (lidAngle > 1.0F) {
-				lidAngle = 1.0F;
-			}
-
-			float f2 = 0.5F;
-
-			if (lidAngle < f2 && f1 >= f2) {
-				// 音を出す
-				playSE("random.chestclosed", 0.5F, worldObj.rand.nextFloat() * 0.1F + 0.9F);
-				// this.playSE("random.burp", 0.5F,
-				// this.worldObj.rand.nextFloat() * 0.1F + 0.9F);
-			}
-
-			if (lidAngle < 0.0F) {
-				lidAngle = 0.0F;
-			}
-		}
-	}
-
-	// AIの切り替えの処理(abstract独自)
-	@Override
-	public void setAITask() {
-		super.setAITask();
-
-		// 飼いならし状態の場合
-		if (isTamed()) {
-			// 手に何も持って『いない』場合
-			if (getHeldItem() == null) {
-				// メッセージの出力（独自）
-				Information(getInvName() + " : Follow");
-
-				// 4 追従
-				tasks.addTask(4, aiFollowOwner);
-			}
-			// 手に何か持って『いる』場合
-			else {
-				// 『羽根』を持っている場合
-				if (getHeldItem().isItemEqual(new ItemStack(Item.feather))) {
-					// メッセージの出力（独自）
-					Information(getInvName() + " : Freedom");
-
-					// 4 アイテム回収
-					// 5 自由行動
-					tasks.addTask(4, aiCollectItem);
-					tasks.addTask(5, aiWander);
-				}
-
-				// 『チェスト』を持っている場合
-				if (getHeldItem().isItemEqual(new ItemStack(Block.chest))) {
-					// メッセージの出力（独自）
-					Information(getInvName() + " : FindChest");
-
-					// 4 チェストの走査
-					// 5 アイテム回収
-					// 6 自由行動
-					tasks.addTask(4, aiFindChest);
-					tasks.addTask(5, aiCollectItem);
-					tasks.addTask(6, aiWander);
-				}
-
-				// 『クワ』を持っている場合
-				if (getHeldItem().getItem() instanceof ItemHoe) {
-					// メッセージの出力（独自）
-					Information(getInvName() + " : Farmer");
-
-					// 4 農業
-					// 5 自由行動
-					tasks.addTask(4, aiFarmer);
-					tasks.addTask(5, aiWander);
-				}
-
-				// 『スカル』を持っている場合
-				if (getHeldItem().getItem() instanceof ItemSkull) {
-					// メッセージの出力（独自）
-					Information(getInvName() + " : Eat Villager");
-
-					// 4 村人食い
-					// 5 自由行動
-					tasks.addTask(4, aiEatVillager);
-					tasks.addTask(5, aiWander);
-				}
-			}
-		}
-		// 野生状態の場合
-		else {
-			// 5 アイテム回収
-			// 6 自由行動
-			tasks.addTask(5, aiCollectItem);
-			tasks.addTask(6, aiWander);
-		}
-	}
-
-	// 蓋の角度をセット
-	public void setLidAngle(float lidAngle) {
-		this.lidAngle = lidAngle;
-	}
-
-	// 属性の付与
-	@Override
-	protected void applyEntityAttributes() {
-		super.applyEntityAttributes();
-		getEntityAttribute(SharedMonsterAttributes.maxHealth).setAttribute(20.0D);
-		getEntityAttribute(SharedMonsterAttributes.movementSpeed).setAttribute(0.25D);
-	}
-
 	// 30 パーティクルストリング同期用
 	@Override
 	protected void entityInit() {
@@ -461,21 +469,13 @@ public class EntityLivingChest extends EntityLivingUtility {
 		dataWatcher.addObject(30, "");
 	}
 
-	// 死亡時の音声
-	@Override
-	protected String getDeathSound() {
-		return "random.break";
+	// 蓋の角度をセット
+	public void setLidAngle(float lidAngle) {
+		this.lidAngle = lidAngle;
 	}
 
-	// 被ダメージ時の音声
-	@Override
-	protected String getHurtSound() {
-		return "dig.wood";
-	}
-
-	// 足音
-	@Override
-	protected void playStepSound(int par1, int par2, int par3, int par4) {
-		playSound("step.wood", 0.25F, 1.0F);
+	// 蓋の角度を取得
+	public float getLidAngle() {
+		return lidAngle;
 	}
 }
