@@ -14,7 +14,7 @@ public class LivingChestMotionData extends BasicMotionDataImpl<EntityLivingChest
 	private int prevTicks = 0;
 	private int ticks = 0;
 
-	//現在のモーション
+	// 現在のモーション
 	private LivingChestMotion<?> currentCoverMotion;
 
 	public int addTicks() {
@@ -50,7 +50,6 @@ public class LivingChestMotionData extends BasicMotionDataImpl<EntityLivingChest
 
 	@Override
 	public void setCurrentCoverMotion(LivingChestMotion<?> currentCoverMotion) {
-		System.out.println(currentCoverMotion);
 		this.currentCoverMotion = currentCoverMotion;
 	}
 

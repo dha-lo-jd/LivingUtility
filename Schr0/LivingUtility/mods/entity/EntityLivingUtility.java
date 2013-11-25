@@ -1,9 +1,12 @@
 package Schr0.LivingUtility.mods.entity;
 
+import java.util.List;
+
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAISwimming;
+import net.minecraft.entity.ai.EntityAITaskEntry;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityGolem;
@@ -18,6 +21,8 @@ import net.minecraft.world.World;
 import Schr0.LivingUtility.mods.entity.ai.EntityLivingUtilityAILookAtTradePlayer;
 import Schr0.LivingUtility.mods.entity.ai.EntityLivingUtilityAISit;
 import Schr0.LivingUtility.mods.entity.ai.EntityLivingUtilityAITrade;
+
+import com.google.common.collect.Lists;
 
 public abstract class EntityLivingUtility extends EntityGolem implements IInventory {
 	// 開閉の変数(独自)
@@ -423,9 +428,12 @@ public abstract class EntityLivingUtility extends EntityGolem implements IInvent
 		// 音を出す
 		playSE("random.orb", 1.0F, 1.0F);
 
+		System.out.print("World:" + worldObj.isRemote);
+		System.out.println(" tasks.taskEntries.remove : " + tasks.taskEntries.size());
 		// AIの除去
-		for (int i = 0; i < tasks.taskEntries.size(); i++) {
-			tasks.taskEntries.remove(i);
+		List<EntityAITaskEntry> entries = Lists.newArrayList(tasks.taskEntries);
+		for (EntityAITaskEntry entry : entries) {
+			tasks.removeTask(entry.action);
 		}
 
 		// 基本AIの設定

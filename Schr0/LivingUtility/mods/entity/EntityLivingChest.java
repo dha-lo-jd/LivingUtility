@@ -2,6 +2,7 @@ package Schr0.LivingUtility.mods.entity;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLivingBase;
@@ -22,22 +23,77 @@ import Schr0.LivingUtility.mods.entity.ai.EntityLivingUtilityAICollectItem;
 import Schr0.LivingUtility.mods.entity.ai.EntityLivingUtilityAIEatVillager;
 import Schr0.LivingUtility.mods.entity.ai.EntityLivingUtilityAIFindChest;
 import Schr0.LivingUtility.mods.entity.ai.EntityLivingUtilityAIFollowOwner;
+import Schr0.LivingUtility.mods.entity.model.ModelLivingChest;
+import Schr0.LivingUtility.mods.entity.motion.LivingChestMotionData;
+import Schr0.LivingUtility.mods.entity.motion.LivingChestMotionData.CoverState;
+
+import com.google.common.collect.ImmutableMap;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class EntityLivingChest extends EntityLivingUtility {
-	// 蓋の開閉の変数(独自)
-	private float prev;
-	private float lid;
+	private interface HealthUpdateListner {
+		void doHandle(EntityLivingChest me);
+	}
 
-	// 蓋の開閉角度の変数(独自)
-	private float prevLidAngle;
-	private float lidAngle;
+	// 蓋が開けられた時に送信するstate値
+	public static final byte ACTION_STATE_OPEN = (byte) 50;
+	public static final byte ACTION_STATE_CLOSE = (byte) 51;
+	public static final byte ACTION_STATE_PICK_ITEM = (byte) 52;
+
+	public static final Map<Byte, HealthUpdateListner> ACTION_STATE_MAPPING = ImmutableMap.<Byte, HealthUpdateListner> builder()//
+			.put(ACTION_STATE_OPEN, new HealthUpdateListner() {
+				@Override
+				public void doHandle(EntityLivingChest me) {
+					me.motionData.setCoverState(CoverState.OPENNING);
+				}
+			})//
+			.put(ACTION_STATE_CLOSE, new HealthUpdateListner() {
+				@Override
+				public void doHandle(EntityLivingChest me) {
+					me.motionData.setCoverState(CoverState.CLOSING);
+				}
+			})//
+			.put(ACTION_STATE_PICK_ITEM, new HealthUpdateListner() {
+				@Override
+				public void doHandle(EntityLivingChest me) {
+					me.motionData.setCoverState(CoverState.MOMENTARY_OPENNING);
+				}
+			})//
+			.build();
+
+	// モーション制御用DTO
+	private final LivingChestMotionData motionData = new LivingChestMotionData();
+
+	public LivingChestMotionData getMotionData() {
+		return motionData;
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void handleHealthUpdate(byte par1) {
+
+		if (ACTION_STATE_MAPPING.containsKey(par1)) {
+			ACTION_STATE_MAPPING.get(par1).doHandle(this);
+		}
+		super.handleHealthUpdate(par1);
+	}
+
+	// // 蓋の開閉の変数(独自)
+	// private float prev;
+	// private float lid;
+	//
+	// // 蓋の開閉角度の変数(独自)
+	// private float prevLidAngle;
+	// private float lidAngle;
 
 	// AIの宣言
 	// 追従 (3)
 	// 自由行動 (1)
 	// アイテム回収 (2)
 	// チェストの走査 (2)
-	public EntityLivingUtilityAIFollowOwner aiFollowOwner = new EntityLivingUtilityAIFollowOwner(this, 1.25F, 2.0F, 2.0F);
+	public EntityLivingUtilityAIFollowOwner aiFollowOwner = new EntityLivingUtilityAIFollowOwner(this, 1.25F, 4.0F, 2.0F);
 	public EntityAIWander aiWander = new EntityAIWander(this, 1.25F);
 	public EntityLivingUtilityAICollectItem aiCollectItem = new EntityLivingUtilityAICollectItem(this, 1.25F);
 	public EntityLivingUtilityAIFindChest aiFindChest = new EntityLivingUtilityAIFindChest(this, 1.25F);
@@ -55,6 +111,9 @@ public class EntityLivingChest extends EntityLivingUtility {
 		if (par1World != null && !par1World.isRemote) {
 			setAITask();
 		}
+
+		// モデルのモーションセットを取得(今は決め打ちだけど切り替えもできる…かも)
+		new ModelLivingChest().setupMotionMappingToMotionData(this, motionData);
 	}
 
 	// 内部インベントリの大きさ（abstract独自）
@@ -136,11 +195,12 @@ public class EntityLivingChest extends EntityLivingUtility {
 		}
 	}
 
-	// 蓋の角度（独自）
-	// @SideOnly(Side.CLIENT)
-	public float getCoverAngle(float par1) {
-		return (prevLidAngle + (lidAngle - prevLidAngle) * par1) * 0.5F * (float) Math.PI;
-	}
+	// // 蓋の角度（独自）
+	// // @SideOnly(Side.CLIENT)
+	// public float getCoverAngle(float par1) {
+	// return (prevLidAngle + (lidAngle - prevLidAngle) * par1) * 0.5F * (float)
+	// Math.PI;
+	// }
 
 	// 属性の付与
 	@Override
@@ -313,41 +373,47 @@ public class EntityLivingChest extends EntityLivingUtility {
 		}
 
 		// 蓋の角度・音声の設定//
-		prevLidAngle = lidAngle;
-		float f = 0.2F;// 開閉速度 (0.1F)
-
-		if (isOpen() && lidAngle == 0.0F) {
-			// 音を出す
-			playSE("random.chestopen", 0.5F, worldObj.rand.nextFloat() * 0.1F + 0.9F);
-			// this.playSE("random.eat", 0.5F, this.worldObj.rand.nextFloat() *
-			// 0.1F + 0.9F);
-		}
-
-		if (!isOpen() && lidAngle > 0.0F || isOpen() && lidAngle < 1.0F) {
-			float f1 = lidAngle;
-
-			if (isOpen()) {
-				lidAngle += f;
-			} else {
-				lidAngle -= f;
-			}
-
-			if (lidAngle > 1.0F) {
-				lidAngle = 1.0F;
-			}
-
-			float f2 = 0.5F;
-
-			if (lidAngle < f2 && f1 >= f2) {
-				// 音を出す
-				playSE("random.chestclosed", 0.5F, worldObj.rand.nextFloat() * 0.1F + 0.9F);
-				// this.playSE("random.burp", 0.5F,
-				// this.worldObj.rand.nextFloat() * 0.1F + 0.9F);
-			}
-
-			if (lidAngle < 0.0F) {
-				lidAngle = 0.0F;
-			}
+		// prevLidAngle = lidAngle;
+		// float f = 0.2F;// 開閉速度 (0.1F)
+		//
+		// if (isOpen() && lidAngle == 0.0F) {
+		// // 音を出す
+		// playSE("random.chestopen", 0.5F, worldObj.rand.nextFloat() * 0.1F +
+		// 0.9F);
+		// // this.playSE("random.eat", 0.5F, this.worldObj.rand.nextFloat() *
+		// // 0.1F + 0.9F);
+		// }
+		//
+		// if (!isOpen() && lidAngle > 0.0F || isOpen() && lidAngle < 1.0F) {
+		// float f1 = lidAngle;
+		//
+		// if (isOpen()) {
+		// lidAngle += f;
+		// } else {
+		// lidAngle -= f;
+		// }
+		//
+		// if (lidAngle > 1.0F) {
+		// lidAngle = 1.0F;
+		// }
+		//
+		// float f2 = 0.5F;
+		//
+		// if (lidAngle < f2 && f1 >= f2) {
+		// // 音を出す
+		// playSE("random.chestclosed", 0.5F, worldObj.rand.nextFloat() * 0.1F +
+		// 0.9F);
+		// // this.playSE("random.burp", 0.5F,
+		// // this.worldObj.rand.nextFloat() * 0.1F + 0.9F);
+		// }
+		//
+		// if (lidAngle < 0.0F) {
+		// lidAngle = 0.0F;
+		// }
+		// }
+		if (worldObj.isRemote && !dead) {
+			// モーションデータ後処理
+			motionData.afterUpdate();
 		}
 	}
 
@@ -405,42 +471,47 @@ public class EntityLivingChest extends EntityLivingUtility {
 					 */
 				}
 			}
-		}
-
-		// 開閉の設定//
-		prev = lid;
-		float f = 0.4F;// 開閉速度 (0.1F)
-
-		if (isCollectItem && lid == 0.0F) {
-			// 開く
-			setOpen(true);
-			lid++;
-		}
-
-		if (!isCollectItem && lid > 0.0F || isCollectItem && lid < 1.0F) {
-			float f1 = lid;
 
 			if (isCollectItem) {
-				lid += f;
-			} else {
-				lid -= f;
-			}
-
-			if (lid > 1.0F) {
-				lid = 1.0F;
-			}
-
-			float f2 = 0.5F;
-
-			if (lid < f2 && f1 >= f2) {
-				// 閉じる
-				setOpen(false);
-			}
-
-			if (lid < 0.0F) {
-				lid = 0.0F;
+				// アイテム回収フラグをｸﾗｲｱﾝﾖに送信
+				worldObj.setEntityState(this, ACTION_STATE_PICK_ITEM);
 			}
 		}
+
+		// // 開閉の設定//
+		// prev = lid;
+		// float f = 0.4F;// 開閉速度 (0.1F)
+		//
+		// if (isCollectItem && lid == 0.0F) {
+		// // 開く
+		// setOpen(true);
+		// lid++;
+		// }
+		//
+		// if (!isCollectItem && lid > 0.0F || isCollectItem && lid < 1.0F) {
+		// float f1 = lid;
+		//
+		// if (isCollectItem) {
+		// lid += f;
+		// } else {
+		// lid -= f;
+		// }
+		//
+		// if (lid > 1.0F) {
+		// lid = 1.0F;
+		// }
+		//
+		// float f2 = 0.5F;
+		//
+		// if (lid < f2 && f1 >= f2) {
+		// // 閉じる
+		// setOpen(false);
+		// }
+		//
+		// if (lid < 0.0F) {
+		// lid = 0.0F;
+		// }
+		// }
 
 		// particleを再生させよう!
 		if (worldObj.isRemote) {
@@ -460,6 +531,11 @@ public class EntityLivingChest extends EntityLivingUtility {
 				}
 			}
 		}
+
+		if (worldObj.isRemote && !dead) {
+			// モーション更新
+			motionData.getCurrentCoverMotion().updateMotion();
+		}
 	}
 
 	// 30 パーティクルストリング同期用
@@ -469,13 +545,13 @@ public class EntityLivingChest extends EntityLivingUtility {
 		dataWatcher.addObject(30, "");
 	}
 
-	// 蓋の角度をセット
-	public void setLidAngle(float lidAngle) {
-		this.lidAngle = lidAngle;
-	}
-
-	// 蓋の角度を取得
-	public float getLidAngle() {
-		return lidAngle;
-	}
+	// // 蓋の角度をセット
+	// public void setLidAngle(float lidAngle) {
+	// this.lidAngle = lidAngle;
+	// }
+	//
+	// // 蓋の角度を取得
+	// public float getLidAngle() {
+	// return lidAngle;
+	// }
 }

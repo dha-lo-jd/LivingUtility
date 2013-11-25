@@ -5,100 +5,80 @@ import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.util.MathHelper;
 import Schr0.LivingUtility.mods.entity.EntityLivingUtility;
 
-public class EntityLivingUtilityAIFollowOwner extends AIBaseEntityLivingUtility
-{
-	private EntityLivingBase	theOwner;
-	private final float			moveSpeed;
-	private final PathNavigate	pathfinder;
-	private int					catchCounter;
-	private boolean				avoidsWater;
-	
-	float						maxDist;
-	float						minDist;
-	
-	public EntityLivingUtilityAIFollowOwner(EntityLivingUtility LivingUtility, float speed, float min, float max)
-	{
+public class EntityLivingUtilityAIFollowOwner extends AIBaseEntityLivingUtility {
+	private EntityLivingBase theOwner;
+	private final float moveSpeed;
+	private final PathNavigate pathfinder;
+	private int catchCounter;
+	private boolean avoidsWater;
+
+	float maxDist;
+	float minDist;
+
+	public EntityLivingUtilityAIFollowOwner(EntityLivingUtility LivingUtility, float speed, float min, float max) {
 		super(LivingUtility);
-		this.moveSpeed = speed;
-		this.pathfinder = LivingUtility.getNavigator();
-		this.minDist = min;
-		this.maxDist = max;
-		this.setMutexBits(3);
+		moveSpeed = speed;
+		pathfinder = LivingUtility.getNavigator();
+		minDist = min;
+		maxDist = max;
+		setMutexBits(3);
 	}
-	
+
 	@Override
-	public boolean shouldExecute()
-	{
-		EntityLivingBase LivingBase = this.theUtility.getOwner();
-		
-		if (LivingBase == null)
-		{
+	public boolean shouldExecute() {
+		EntityLivingBase LivingBase = theUtility.getOwner();
+
+		if (LivingBase == null) {
 			return false;
-		}
-		else if (this.theUtility.isSitting())
-		{
+		} else if (theUtility.isSitting()) {
 			return false;
-		}
-		else if (this.theUtility.getDistanceSqToEntity(LivingBase) < (double) (this.minDist * this.minDist))
-		{
+		} else if (theUtility.getDistanceSqToEntity(LivingBase) < minDist * minDist) {
 			return false;
-		}
-		else
-		{
-			this.theOwner = LivingBase;
+		} else {
+			theOwner = LivingBase;
 			return true;
 		}
 	}
-	
+
 	@Override
-	public boolean continueExecuting()
-	{
-		return !this.pathfinder.noPath() && this.theUtility.getDistanceSqToEntity(this.theOwner) > (double) (this.maxDist * this.maxDist) && !this.theUtility.isSitting();
+	public boolean continueExecuting() {
+		return !pathfinder.noPath() && theUtility.getDistanceSqToEntity(theOwner) > maxDist * maxDist && !theUtility.isSitting();
 	}
-	
+
 	@Override
-	public void startExecuting()
-	{
-		this.catchCounter = 0;
-		this.avoidsWater = this.theUtility.getNavigator().getAvoidsWater();
-		this.theUtility.getNavigator().setAvoidsWater(false);
+	public void startExecuting() {
+		catchCounter = 0;
+		avoidsWater = theUtility.getNavigator().getAvoidsWater();
+		theUtility.getNavigator().setAvoidsWater(false);
 	}
-	
+
 	@Override
-	public void resetTask()
-	{
-		this.theOwner = null;
-		this.pathfinder.clearPathEntity();
-		this.theUtility.getNavigator().setAvoidsWater(this.avoidsWater);
+	public void resetTask() {
+		theOwner = null;
+		pathfinder.clearPathEntity();
+		theUtility.getNavigator().setAvoidsWater(avoidsWater);
 	}
-	
+
 	@Override
-	public void updateTask()
-	{
-		this.theUtility.getLookHelper().setLookPositionWithEntity(this.theOwner, 10.0F, (float) this.theUtility.getVerticalFaceSpeed());
-		
-		if (!this.theUtility.isSitting())
-		{
-			if (--this.catchCounter <= 0)
-			{
-				this.catchCounter = 10;
-				
-				if (!this.pathfinder.tryMoveToEntityLiving(this.theOwner, this.moveSpeed))
-				{
-					if (this.theUtility.getDistanceSqToEntity(this.theOwner) >= 144.0D)
-					{
-						int x = MathHelper.floor_double(this.theOwner.posX) - 2;
-						int z = MathHelper.floor_double(this.theOwner.posZ) - 2;
-						int y = MathHelper.floor_double(this.theOwner.boundingBox.minY);
-						
-						for (int l = 0; l <= 4; ++l)
-						{
-							for (int i1 = 0; i1 <= 4; ++i1)
-							{
-								if ((l < 1 || i1 < 1 || l > 3 || i1 > 3) && this.theWorld.doesBlockHaveSolidTopSurface(x + l, y - 1, z + i1) && !this.theWorld.isBlockNormalCube(x + l, y, z + i1) && !this.theWorld.isBlockNormalCube(x + l, y + 1, z + i1))
-								{
-									this.theUtility.setLocationAndAngles((double) ((float) (x + l) + 0.5F), (double) y, (double) ((float) (z + i1) + 0.5F), this.theUtility.rotationYaw, this.theUtility.rotationPitch);
-									this.pathfinder.clearPathEntity();
+	public void updateTask() {
+		theUtility.getLookHelper().setLookPositionWithEntity(theOwner, 10.0F, theUtility.getVerticalFaceSpeed());
+
+		if (!theUtility.isSitting()) {
+			if (--catchCounter <= 0) {
+				catchCounter = 10;
+
+				if (!pathfinder.tryMoveToEntityLiving(theOwner, moveSpeed)) {
+					if (theUtility.getDistanceSqToEntity(theOwner) >= 144.0D) {
+						int x = MathHelper.floor_double(theOwner.posX) - 2;
+						int z = MathHelper.floor_double(theOwner.posZ) - 2;
+						int y = MathHelper.floor_double(theOwner.boundingBox.minY);
+
+						for (int l = 0; l <= 4; ++l) {
+							for (int i1 = 0; i1 <= 4; ++i1) {
+								if ((l < 1 || i1 < 1 || l > 3 || i1 > 3) && theWorld.doesBlockHaveSolidTopSurface(x + l, y - 1, z + i1)
+										&& !theWorld.isBlockNormalCube(x + l, y, z + i1) && !theWorld.isBlockNormalCube(x + l, y + 1, z + i1)) {
+									theUtility.setLocationAndAngles(x + l + 0.5F, y, z + i1 + 0.5F, theUtility.rotationYaw, theUtility.rotationPitch);
+									pathfinder.clearPathEntity();
 									return;
 								}
 							}
